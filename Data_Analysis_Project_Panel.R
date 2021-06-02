@@ -42,6 +42,7 @@
     summary()
   
 ##Graphs
+  
   ##We can see a trend in light distance, is bigger than the other ones. This means that people use to do more exercise in a lightly way
     ggplot(data = da) +
       geom_point(mapping = aes(x = very_active_distance, y = total_distance), color = "red") +
@@ -73,7 +74,7 @@
 ##Conclusion: doing very active exercises will burn more calories. We can found a balance if you do a moderately exercise,
     ##and finally if you do a light exercise you will burn less calories. 
   
-  ##We can see, that if you do a light activity u need more time to burn calories. But if you do an extensive activity, u need less time.
+  ##We can see, that if you do light activity u need more time to burn calories. But if you do an extensive activity, u need less time.
     ggplot(data = da) +
       geom_point(mapping = aes(x = calories, y = total_activity_minutes)) +
       geom_smooth(mapping = aes (x = calories, y = very_active_minutes), color = "blue") +
@@ -121,6 +122,7 @@
   ## da = daily Activity dataframe; sl = sleep Day dataframe
     da_sl <- merge(da, sld, by = c("id","activity_date"))
     
+    glimpse(da_sl)
   
     ##I want to chech how many people sleep 8 or more hours per day from my dataset. 
       filter_8hours <- da_sl %>%
@@ -133,15 +135,61 @@
     ##Conclusion_ From 413 rows data, 296 slept less than 8 hours. 
     
     ##Analyzing data
+      
       filter_less8hourse %>%
         summary()
       filter_8hours %>%
         summary()
       
-    ##I want to add this to a new column in the dataset, so later we can analyze the data according to this information.
-      eight_hours <- da_sl %>%
-        mutate(eight_hours_or_not = if_else(total_minutes_asleep >= 480, 'TRUE', 'FALSE'))
-      View(eight_hours)
+      ##fl8 = filter_less8hours
+      select_fl8 <- filter_less8hourse %>%
+        select(total_steps,
+               total_distance,
+               very_active_distance,
+               moderately_active_distance,
+               light_active_distance,
+               very_active_minutes,
+               fairly_active_minutes,
+               lightly_active_minutes,
+               total_activity_minutes,
+               sedentary_minutes, 
+               calories,
+               total_minutes_asleep,
+               total_time_in_bed)
+      View(select_fl8)
+      
+      ##8h = 8hours
+      select_8h <- filter_8hours %>%
+        select(
+          total_steps,
+          total_distance,
+          very_active_distance,
+          moderately_active_distance,
+          light_active_distance,
+          very_active_minutes,
+          fairly_active_minutes,
+          lightly_active_minutes,
+          total_activity_minutes,
+          sedentary_minutes, 
+          calories,
+          total_minutes_asleep,
+          total_time_in_bed)
+      View(select_8h)
+      
+    ## Random size so we can compare means values in both data sets. 
+       random_selectfl8 <- select_fl8 %>%
+        sample_n(117, replace = FALSE)
+       View(random_selectfl8)
+      
+      
+    ##I will merge both 117 rows data sets, creating a new one only of 234
+        merge_8h_fl8 <- merge(select_8h, random_selectfl8, all = TRUE)
+        View(merge_8h_fl8)
+      
+        eight_hours <- merge_8h_fl8 %>%
+          mutate(eight_hours_or_not = if_else(total_minutes_asleep >= 480, 'TRUE', 'FALSE'))
+        View(eight_hours)
+          
       
      
     
@@ -155,10 +203,6 @@
       
   ##Graphs:
   ##Total steps vs total time in bed 
-    ggplot(data = eight_hours) +
-      geom_point(mapping = aes(x = total_minutes_asleep, y = total_steps, color= total_time_in_bed)) +
-      facet_wrap(~eight_hours_or_not) +
-      theme(legend.position='bottom') 
     
     ggplot(data = eight_hours) +
       geom_point(mapping = aes(x = total_activity_minutes, y = sedentary_minutes)) +
@@ -169,15 +213,16 @@
       geom_point(mapping = aes(x = very_active_distance, y = light_active_distance)) +
       facet_wrap(~eight_hours_or_not) +
       theme(legend.position='bottom') 
-    e
+    
     ggplot(data = eight_hours) +
       geom_point(mapping = aes(x = total_distance, y = total_steps, color = light_active_distance)) +
       facet_wrap(~eight_hours_or_not) +
       theme(legend.position='bottom') 
   
   ##We are going to see the relation between the wake up minutes vs calories and which trend has with sedentary and active column 
-    ggplot(data = da_sl, aes(x = sedentary_minutes, y = calories)) +
-      geom_point(aes(alpha = total_minutes_asleep))
+    ggplot(data = eight_hours, aes(x = sedentary_minutes, y = calories)) +
+      geom_point(aes(alpha = total_minutes_asleep)) +
+      facet_wrap(~eight_hours_or_not)
     
     ggplot(data = da_sl, aes(x = total_activity_minutes, y = calories)) +
       geom_point(aes(alpha = total_minutes_asleep))
@@ -312,4 +357,3 @@
     ggplot(data = random_minw_mmn) +
       geom_bar(mapping = aes(x= me_ts))
     
-  
