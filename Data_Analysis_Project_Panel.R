@@ -1,23 +1,17 @@
 ##Starting project. 
 ##Installing packages & libraries
   install.packages("tidyverse")
-  install.packages("devtools")
   install.packages("here")
   install.packages("ggplot2")
   install.packages("skimr")
   install.packages("janitor")
-  install.packages("gridExtra")
   install.packages("readxl")
-  install.packages("lubridate")
   library(tidyverse)
-  library(devtools)
   library(here)
   library(ggplot2)
   library(skimr)
   library(janitor)
-  library(gridExtra)
   library(readxl)
-  library(lubridate)
 
 ##Importing first data set
   dailiy_Activity <- read_excel("dailiy_Activity.xlsx")
@@ -47,6 +41,8 @@
     ggplot(data = da) +
       geom_point(mapping = aes(x = very_active_distance, y = total_distance), color = "red") +
       labs(title = "Total Distance VS Very Active Distance")
+    
+    
     
     ggplot(data = da) +
       geom_point(mapping = aes(x = moderately_active_distance, y = total_distance), color = "green") +
@@ -133,6 +129,14 @@
         filter(total_minutes_asleep < 480)
       View(filter_less8hourse)
     ##Conclusion_ From 413 rows data, 296 slept less than 8 hours. 
+      
+    filter_hours_pie <- c(117, 296)
+    piepercent<- round(100*filter_hours_pie/sum(filter_hours_pie), 1)
+    pie(filter_hours_pie, labels)
+    pie(filter_hours_pie, labels = piepercent,col = rainbow(length(filter_hours_pie)))
+    legend("topright", c("8 hourse or more", "Less than 8 hours"), cex = 1,
+           fill = rainbow(length(filter_hours_pie)))
+    
     
     ##Analyzing data
       
@@ -203,30 +207,28 @@
       
   ##Graphs:
   ##Total steps vs total time in bed 
-    
+    ## 1 trend
+    label_filter_change = as_labeller(c(`FALSE` = "Less than 8 hours", `TRUE` = "8 hours or more"))
+        
     ggplot(data = eight_hours) +
-      geom_point(mapping = aes(x = total_activity_minutes, y = sedentary_minutes)) +
-      facet_wrap(~eight_hours_or_not) +
-      theme(legend.position='bottom') 
-    
+      geom_point(mapping = aes(x = total_activity_minutes, y = sedentary_minutes, color = calories)) +
+      facet_wrap(~eight_hours_or_not, labeller = label_filter_change) +
+      labs(x = "Total Activity Minutes", y = "Sedentary Minutes")
+    ##2 trend
     ggplot(data = eight_hours) +
-      geom_point(mapping = aes(x = very_active_distance, y = light_active_distance)) +
-      facet_wrap(~eight_hours_or_not) +
-      theme(legend.position='bottom') 
+      geom_point(mapping = aes(x = total_activity_minutes, y = calories, color = very_active_minutes)) +
+      facet_wrap(~eight_hours_or_not, labeller = label_filter_change)
+    ##3 trend
+    ggplot(data = eight_hours, aes(x = total_distance, y = calories)) +
+      geom_smooth(mapping = aes(alpha = very_active_distance), color = "red") +
+      facet_wrap(~eight_hours_or_not, labeller = label_filter_change) +
+      theme(legend.position='none') 
     
-    ggplot(data = eight_hours) +
-      geom_point(mapping = aes(x = total_distance, y = total_steps, color = light_active_distance)) +
-      facet_wrap(~eight_hours_or_not) +
-      theme(legend.position='bottom') 
-  
-  ##We are going to see the relation between the wake up minutes vs calories and which trend has with sedentary and active column 
-    ggplot(data = eight_hours, aes(x = sedentary_minutes, y = calories)) +
-      geom_point(aes(alpha = total_minutes_asleep)) +
-      facet_wrap(~eight_hours_or_not)
-    
-    ggplot(data = da_sl, aes(x = total_activity_minutes, y = calories)) +
-      geom_point(aes(alpha = total_minutes_asleep))
-    
+    ggplot(data = eight_hours, aes(x = total_distance, y = calories)) +
+      geom_smooth(mapping = aes(x = very_active_distance, y = calories), se = FALSE) +
+      geom_smooth(mapping = aes(x = light_active_distance, y = calories), color = "red", se = FALSE) +
+      geom_smooth(mapping = aes(x = moderately_active_distance, y = calories), color = "green", se = FALSE) +
+      facet_wrap(~eight_hours_or_not, labeller = label_filter_change) 
 
   
   ##Now, I am going to import the weight_Info data set, clean it, analyze it, graph some trends and then merge with other data sets. 
@@ -239,9 +241,6 @@
     colnames(weight_Log_Info)
   
   ##Columns did not have names 
-    weight_Log_Info %>% 
-      rename(activity_date = ...3) %>%
-      rename(x = ...2)
     
     weightt <- weight_Log_Info %>%
       clean_names() %>%
@@ -262,21 +261,29 @@
     View(da_sl_we)
     
   ## Graphs 
-    ggplot(data = da_sl_we) +
-      geom_point(mapping = aes(x = sedentary_minutes, y = total_activity_minutes, color = weight_kg))
     
-    ggplot(data = da_sl_we) +
-      geom_point(mapping = aes(x = sedentary_minutes, y = total_distance, color = weight_kg))
     
-  ## There is no big difference betwee  the minutes in bed, wake up and the weight 
+  ## There is no big difference between  the minutes in bed, wake up and the weight 
     ggplot(data = da_sl_we) +
       geom_point(mapping = aes(x = total_minutes_asleep, y = total_time_in_bed,color = weight_kg))
     
   ## We can see a trend when weight increment, the bmi also increment. 
     ggplot(data = da_sl_we) +
       geom_line(mapping = aes(x = weight_kg, y = bmi, ), color = "blue") +
-      labs(title = "Bmi vs Weight")
+      labs(x = "Weight (kg)", y = "BMI")
     
+    ggplot(data = da_sl_we) +
+      geom_point(mapping = aes(x = weight_kg , y = total_time_in_bed))
+    
+    ggplot( data = da_sl_we, aes(x=total_distance, y = total_steps)) +
+      geom_line() +
+      geom_point(mapping = aes(x = moderately_active_distance, y = total_steps), color = "purple") +
+      geom_point(mapping = aes(x = very_active_distance, y = total_steps), color = "green") +
+      geom_point(mapping = aes(x = light_active_distance, y = total_steps), color = "red") 
+    
+    
+    
+  
   ##I want to analyze the data sets per hour and merge them for trends findings 
   ##We are going to import data sets, clean it, analyze it and graph trends. 
     hourly_Intensities <- read_excel("hourly_Intensities.xlsx")
@@ -301,13 +308,19 @@
         clean_names()
     
     ##3) Merging data 
-      minw_mmn <- merge(minw, mmn, by = c("id", "activity_minute"))
-      View(minw_mmn)
+
       
       hi_hc <- merge(hi, hc, by = c("id", "activity_date"))
       View(hi_hc)
       
-      hi_hc_hs <- merge(hi_hc, hs, by = c("id", "activity_date"))
+        ## hi_hc es un data set muy grande, voy a agarrar una sample según la población. Accorging to poblation, trust level y error margin
+        ##254979, 95%, 3% = 1063
+      
+          random_hi_hc <- hi_hc %>%
+            sample_n(1063, replace = FALSE)
+          View(random_hi_hc)
+          
+      hi_hc_hs <- merge(random_hi_hc, hs, by = c("id", "activity_date"))
       View(hi_hc_hs)
     
     ##I could find that in these merges were duplicates, so we will fix it.
@@ -316,11 +329,25 @@
       View(hi_hc_hs_nodup)
     
     ##4) Graphs 
-      ggplot(data = hi_hc_hs_nodup) +
-        geom_smooth(mapping = aes(x = total_intensity, y = calories))
+      
+      ggplot(data = hi_hc) +
+        geom_point(mapping = aes(x = total_intensity, y = calories))
+      
+      ggplot(data = hi_hc, aes(x=total_intensity, y=calories) ) +
+        geom_hex() +
+        theme_bw()
       
       ggplot(data = hi_hc_hs_nodup) +
-        geom_smooth(mapping = aes(x = total_intensity, y = step_total))
+        geom_point(mapping = aes(x = step_total, y = calories, color = total_intensity))
+      
+      ggplot(data = hi_hc_hs_nodup) +
+        geom_point(mapping = aes(x = step_total, y = calories, color = average_intensity))
+      
+      ggplot(data = hi_hc_hs_nodup) +
+        geom_point(mapping = aes(x = calories, y = step_total, color = total_intensity))
+      
+      ggplot(data = hi_hc_hs_nodup) +
+        geom_point(mapping = aes(x = total_intensity, y = step_total, color = calories))
     
   ##I am going to add the heartrate data set and merge it with hc_hi_hs_nodup
     ##Importing data set
@@ -356,4 +383,5 @@
     
     ggplot(data = random_minw_mmn) +
       geom_bar(mapping = aes(x= me_ts))
+    
     
