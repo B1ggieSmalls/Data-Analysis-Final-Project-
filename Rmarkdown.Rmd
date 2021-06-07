@@ -169,13 +169,21 @@ head(da_sl)
 
 ```
 
+```{r echo=FALSE}
+    filter_hours_pie <- c(117, 296)
+    piepercent <- round(100*filter_hours_pie/sum(filter_hours_pie), 1)
+    pie(filter_hours_pie, labels = piepercent, col = rainbow(length(filter_hours_pie)))
+    legend("topright", c("8 hourse or more", "Less than 8 hours"), cex = 0.8,
+           fill = rainbow(length(filter_hours_pie)))
+```
+
 ### Important trends from last merge and filter
 
 We are going to select only the columns we need for analysis and show a summary of both data sets ( x < 8 && x >= 8). In these summaries, we can compare the information and see some trends. ***We are going to focus in means values.*** 
 
-I created 2 data sets. One for the people who sleep equal or more than 8 hours, and other one for people who sleep less than 8 hours. We can see from my original data set, 117 people sleep 8 or more hours and 413 less than 8 hours.
+I created 2 data sets. One for the people who sleep equal or more than 8 hours, and other one for people who sleep less than 8 hours. We can see from my original data set, 117 people sleep 8 or more hours and 296 less than 8 hours.
 
-So, if we only focus on means values, we are going to face an issue, cause is not going to be the same for both data sets. We need to be partial. In this case, I am going to pick a 117 rows sample from my 413 rows data set. Now, both data sets are going to have 117 rows and we can compare means.  
+So, if we only focus on means values, we are going to face an issue, cause is not going to be the same for both data sets. We need to be partial. In this case, I am going to pick a 117 rows sample from my 296 rows data set. Now, both data sets are going to have 117 rows and we can compare means.  
 
 
 ```{r echo=FALSE}
@@ -214,6 +222,9 @@ So, if we only focus on means values, we are going to face an issue, cause is no
       
      
 ```
+
+
+
 ```{r}
 ##I already created both data sets, this is only the random formula
 random_selectfl8 <- select_fl8 %>%
@@ -250,14 +261,138 @@ eight_hours <- merge_8h_fl8 %>%
 glimpse(eight_hours)
 ```
 
+## Interesting graphs
+
+### Sedentary Minutes vs Tota Activity Minutes
+
+We can find some imbalance in sedentary minutes comparing to activity minutes in people who sleep less than 8 hours. On people who sleep 8 hours or more we find a balance and the sedentary minutes are not so high, they trend to be balance and center.  
 
 
-## Including Plots
+```{r echo=FALSE}
+ label_filter_change = as_labeller(c(`FALSE` = "Less than 8 hours", `TRUE` = "8 hours or more"))
+  ggplot(data = eight_hours) +
+    geom_point(mapping = aes(x = total_activity_minutes, y = sedentary_minutes, color = calories)) +
+    facet_wrap(~eight_hours_or_not, labeller = label_filter_change) +
+    labs(x = "Total Activity Minutes", y = "Sedentary Minutes")
+```
 
-You can also embed plots, for example:
+### Balance between the tota distance and the calories. 
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+We can see a balance also in people who sleep 8 hours or more according to the different type of activities. 
+
+***Blue*** = Very Active
+***Green*** = Moderately active
+***Red*** = Light Activity
+
+```{r echo=FALSE, message=FALSE}
+    ggplot(data = eight_hours, aes(x = total_distance, y = calories)) +
+      geom_smooth(mapping = aes(x = very_active_distance, y = calories), se = FALSE) +
+      geom_smooth(mapping = aes(x = light_active_distance, y = calories), color = "red", se = FALSE) +
+      geom_smooth(mapping = aes(x = moderately_active_distance, y = calories), color = "green", se = FALSE) +
+      facet_wrap(~eight_hours_or_not, labeller = label_filter_change) +
+      labs(x ="Total Distance", y = "Calories") 
+```
+
+## Conclusion
+
+We can see in the summaries that people who sleep less has higher mean values, almost in all columns, but according to the graphs, we can see that the people who sleep 8 or more hours are more balance than the people who sleep less. This means, we can find a breakeven in +8 hours, and in - 8 hours we find lot of peaks values.  
+
+## Importing more data 
+
+We are going to import the weight (kg) values, including bmi also (body mass index).   
+
+```{r}
+weight_Log_Info <- read_excel("weight_Log_Info.xlsx")
+```
+
+## Cleaning and analyzing 
+
+```{r}
+head(weight_Log_Info)
+
+weightt <- weight_Log_Info %>%
+      clean_names() %>%
+      rename(activity_date = x3) 
+
+weight <- weightt %>%
+      select(id,
+             activity_date,
+             weight_kg,
+             fat,
+             bmi,)
+colnames(weight)
+```
+
+## Merging da_sl data set with the new weight data
+
+It is going to be merge with inner join, we need only the information that match. 
+
+```{r}
+  da_sl_we <- merge(da_sl, weight, by = c("id", "activity_date"))
+```
+
+We can see a trend when weight increment, the bmi also increment. 
+
+```{r echo=FALSE}
+
+ggplot(data = da_sl_we) +
+  geom_line(mapping = aes(x = weight_kg, y = bmi, ), color = "blue") +
+  labs(x = "Weight (kg)", y = "BMI")
+```
+
+## Importing new data sets, cleaning, analyzing and merging
+
+Now, we want to analyze the data sets per hour and merge them for trends findings. We are going to import data sets, clean it, analyze it so we can see visual trends. 
+
+```{r}
+    hourly_Intensities <- read_excel("hourly_Intensities.xlsx")
+    hourly_Calories <- read_excel("hourly_Calories.xlsx")
+    hourly_Steps <- read_excel("hourly_Steps.xlsx") 
+```
+
+**hi =hourly_Itennsities**
+**hc = hourly_Calories**
+**hs = hourly_Steps**
+
+#### Cleaning
+
+```{r}
+hi <- hourly_Intensities %>%
+  clean_names()
+    
+hc <- hourly_Calories %>%
+  clean_names()
+      
+hs <- hourly_Steps %>%
+  clean_names()
+```
+
+#### Merging
+
+```{r}
+hi_hc <- merge(hi, hc, by = c("id", "activity_date"))
+```
+
+### Cleaning and analyzing
+
+This merge is so extensive, like 254979 observations, so we are going to take a sample, according to the poblation so we can analyze it and do future merges. 
+
+```{r}
+random_hi_hc <- hi_hc %>%
+            sample_n(1063, replace = FALSE)
+```
+
+### Merging with hours_steps
+
+```{r}
+hi_hc_hs <- merge(random_hi_hc, hs, by = c("id", "activity_date"))
+```
+
+This new merge has duplicates on same dates and minutes, so we are going to clean this duplicates. 
+
+```{r}
+  hi_hc_hs_nodup <- hi_hc_hs %>%
+        distinct(id, activity_date, .keep_all = TRUE)
 ```
 
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
