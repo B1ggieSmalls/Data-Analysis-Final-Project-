@@ -4,7 +4,9 @@ This is the final project for Google Career - Data Analyst. This project belongs
 
 I used a free and public data offered by [Möbius](https://www.kaggle.com/arashnic). The data set is: https://www.kaggle.com/arashnic/fitbit. This is a project done with R and Spreadsheet. The analysis phases were: ask, prepare, process, analyze, share and act. 
 
-***I am still working on this project, so is not the final result.***
+***With the time, can be different edits.***
+
+You can see the project in this link https://rpubs.com/AlexanderNT/779091
 
 Regards,
 
