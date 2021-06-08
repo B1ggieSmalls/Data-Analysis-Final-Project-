@@ -9,11 +9,9 @@ url: {https://github.com/B1ggieSmalls/Data-Analysis-Final-Project-}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Data Analysis Final Project - Coursera 
-
 This is my final Google career project. The **objective** is to identify trends so marketing company can work efficient in a campaign for new clients. We are going to use a free and public data offered by [Möbius](https://www.kaggle.com/arashnic). The data set is: https://www.kaggle.com/arashnic/fitbit. 
 
-Some of the data was modified by hand on excel spreadsheet and final details were done in R. 
+Some of the data was modified by hand on excel spreadsheet and almost all the details were done in R. 
 
 ## Packages installed and libraries
 
@@ -26,21 +24,22 @@ Some of the data was modified by hand on excel spreadsheet and final details wer
   library(readxl)
 ```
 
-### Importing first data set:
+## Importing first data set:
 
 ```{r message=FALSE}
 dailiy_Activity <- read_excel("dailiy_Activity.xlsx")
 ```
 
-#### Cleaning and analyzing data
+## Cleaning and analyzing data
 
 ```{r message=FALSE}
-  ##Cleaning column names
-  da <- clean_names(dailiy_Activity)
+## Cleaning column names
+da <- clean_names(dailiy_Activity)
 ```
 
 ```{r}
-da %>%
+## Selecting only the columns I need for analysis. 
+da_selected <- da %>%
     select(total_steps,
            total_distance,
            very_active_distance,
@@ -49,13 +48,25 @@ da %>%
            very_active_minutes,
            lightly_active_minutes,
            fairly_active_minutes,
-           calories) %>%
-    summary()
+           calories) 
 ```
 
-### Light exercise is the most done
+```{r echo = FALSE, results = 'asis'}
+library(knitr)
+kable(da_selected[1:5, ], caption = "First 5 data set values")
+```
 
-We can see trends in light distance and minutes means, the values are bigger compared with the other columns This means that people use to do more exercise in a lightly way. Pay attention in the **means data** of the next columns and compare it with the columns at the top. 
+```{r}
+## Data summary 
+summary(da_selected)
+```
+
+## Trends
+
+### Light exercise is the activity with more people 
+
+
+We can see trends in light distance and minutes means, the values are bigger compared with the other columns. This means that people use to do more exercise distance and minutes in a lightly way. Pay attention at the **mean data** of the next columns and compare it with the columns at the above.  
 
 ```{r echo=FALSE}
 da %>%
@@ -64,9 +75,9 @@ da %>%
   summary()
 ```
 
-### You burn more calories doing an active excercise
+### People burn more calories doing active excercise
 
-In the next graph, we can see an **important trend**. People who do more active exercise, burn more calories than lighter and fairer exercises. 
+In the next graph, we can see an **important trend**. People who do more active distance exercise, burn more calories than lighter and fairer exercises. 
 
 ```{r echo=FALSE}
 ggplot(data = da, aes(x = calories, y = total_activity_minutes)) +
@@ -82,7 +93,10 @@ ggplot(data = da, aes(x = calories, y = total_activity_minutes)) +
 ```
 
 ### How many time do I need to burn calories? And which excercise is the bestone?
-We can see, that if you do light activity u need more time to burn calories. But if you do an extensive activity, u need less time. So, if you are exercised this is an excellent notice!
+
+We can see that if you do light activity you need more time to burn calories, we can see a strong light activity at minute 200 and calories between 1500 - 3000. 
+
+But if you do an extensive activity, you need less time to burn calories. We can see that the strong values are between 0 - 100 minutes and 1000 - 4000 calories. So, if you are doing activity exercise, it is a good news. 
 
 ```{r echo=FALSE, warning=FALSE, message=FALSE, error=FALSE}
    ggplot(data = da) +
@@ -97,19 +111,18 @@ We can see, that if you do light activity u need more time to burn calories. But
 
 ### Humans spend more time as active or sedentary?
 
-We can see that humans spend more time sedentary than active. When I saw this data, I thought in the time I spend working, studying, playing pc (sedentary) and the time I am doing exercise or moving. 
+We can see that humans used to spend more time sedentary than active. When I saw this data, I thought in the time I spend working, studying, playing pc (sedentary) and the time I am doing exercise or moving. 
 
 **Total minutes = sedentary + active**
 
 ```{r echo=FALSE, message=FALSE}
 ggplot(data = da) +
-      geom_point(mapping = aes(x = calories, y = total_minutes)) +
-      geom_smooth(mapping = aes (x = calories, y = sedentary_minutes), color = "red") + 
-      geom_smooth(mapping = aes (x = calories, y = total_activity_minutes), color = "yellow") +
-      labs(x = "Calories", y = "Total minutes") +
-      annotate("text", x = 3500, y = 100, label = "Red = Sedentary active mins", color = "blue") +
-      annotate("text", x = 3435, y = 40, label = "Yellow = Total active mins", color = "blue") 
-
+  geom_point(mapping = aes(x = calories, y = total_minutes)) +
+  geom_smooth(mapping = aes (x = calories, y = sedentary_minutes), color = "red") + 
+  geom_smooth(mapping = aes (x = calories, y = total_activity_minutes), color = "yellow") +
+  labs(x = "Calories", y = "Total minutes") +
+  annotate("text", x = 3500, y = 100, label = "Red = Sedentary active mins", color = "blue") +
+  annotate("text", x = 3435, y = 40, label = "Yellow = Total active mins", color = "blue") 
 ```
 
 ## Importing new data set
@@ -121,34 +134,43 @@ sleep_Day <- read_excel("sleep_Day.xlsx")
 ## Cleaning and analyzing it
 
 ```{r}
- sl <- clean_names(sleep_Day) %>%
-      select(-id_len)
+sl <- clean_names(sleep_Day) %>%
+  select(-id_len)
   ##Only for future datasets merges & analysis, I will change the column named as SleepDay for activity_date
   sld <- rename(sl, activity_date = sleep_day)
 ```
 
-```{r}
-    sld %>%
-      select(hour_and_minutes_asleep,
-             hours_and_minutos_in_bed,
-             total_minutes_asleep,
-             total_time_in_bed) %>%
-      summary()
+```{r echo = FALSE, results = 'asis'}
+library(knitr)
+kable(sld[1:5, ], caption = "First 5 data set values")
 ```
-## Minutes asleep vs in bed
 
-We found a trend that humans spend more time in bed than only sleeping. When I saw this data, I remembered the time I spend maybe with the phone in the bed or the computer. 
+```{r}
+## Data summaries 
+sld %>%
+  select(hour_and_minutes_asleep,
+  hours_and_minutos_in_bed,
+  total_minutes_asleep,
+  total_time_in_bed) %>%
+  summary()
+```
+
+## Trend
+
+### Minutes asleep vs in bed
+
+We found a trend that humans spend more time in bed than only sleeping. When I saw this data, I remembered the time I spend maybe with the phone or the notebook in the bed before or after sleeping.  
 
 ```{r echo=FALSE}
 ggplot(data = sld) +
-      geom_point(mapping = aes(x = total_time_in_bed, y = total_minutes_asleep), color = "purple") +
-      labs(x = "Total time in bed", y = "Total minutes asleep")
+  geom_point(mapping = aes(x = total_time_in_bed, y = total_minutes_asleep), color = "purple") +
+  labs(x = "Total time in bed", y = "Total minutes asleep")
       
 ```
 
 ## Merge time!
 
-We arrive to the merge time. We are going to merge the data sets, so we can find new trends and compare both data. How are we going to merge? We are going to use the inner join way, because we need only the information that match in both datasets. Ok, let's do it!
+We arrive to the merge time. We are going to merge the data sets, so we can find new trends and compare both data. How are we going to merge? We are going to use the inner join way, because we need only the information that match in both data sets. Ok, let's do it!
 
 ```{r}
 da_sl <- merge(da, sld, by = c("id","activity_date"))
@@ -160,67 +182,64 @@ head(da_sl)
 ***Important:*** I want to know the people who sleep more and less than 8 hours and compare the data so maybe we can find new trends. 
 
 ```{r}
- filter_8hours <- da_sl %>%
-        filter(total_minutes_asleep >= 480)
-    ##Conclusion: I had 413 rows in the data set and 117 people slept more than 8 hours. 
-      filter_less8hourse <- da_sl %>%
-        filter(total_minutes_asleep < 480)
-    ##Conclusion_ From 413 rows data, 296 slept less than 8 hours.
-
+filter_8hours <- da_sl %>%
+  filter(total_minutes_asleep >= 480)
+  ##Conclusion: I had 413 rows in the data set and 117 people slept more than 8 hours. 
+filter_less8hourse <- da_sl %>%
+  filter(total_minutes_asleep < 480)
+  ##Conclusion_ From 413 rows data, 296 slept less than 8 hours.
 ```
 
 ```{r echo=FALSE}
-    filter_hours_pie <- c(117, 296)
-    piepercent <- round(100*filter_hours_pie/sum(filter_hours_pie), 1)
-    pie(filter_hours_pie, labels = piepercent, col = rainbow(length(filter_hours_pie)))
-    legend("topright", c("8 hourse or more", "Less than 8 hours"), cex = 0.8,
-           fill = rainbow(length(filter_hours_pie)))
+filter_hours_pie <- c(117, 296)
+piepercent <- round(100*filter_hours_pie/sum(filter_hours_pie), 1)
+pie(filter_hours_pie, labels = piepercent, col = rainbow(length(filter_hours_pie)))
+legend("topright", c("8 hourse or more", "Less than 8 hours"), cex = 0.8,
+  fill = rainbow(length(filter_hours_pie)))
 ```
 
-### Important trends from last merge and filter
+## Important trends from last merge and filter
 
 We are going to select only the columns we need for analysis and show a summary of both data sets ( x < 8 && x >= 8). In these summaries, we can compare the information and see some trends. ***We are going to focus in means values.*** 
 
-I created 2 data sets. One for the people who sleep equal or more than 8 hours, and other one for people who sleep less than 8 hours. We can see from my original data set, 117 people sleep 8 or more hours and 296 less than 8 hours.
+I created 2 data sets. One for the people who sleep equal or more than 8 hours, and the other one for people who sleep less than 8 hours. We can see from the original data set, 117 people sleep 8 or more hours and 296 less than 8 hours.
 
-So, if we only focus on means values, we are going to face an issue, cause is not going to be the same for both data sets. We need to be partial. In this case, I am going to pick a 117 rows sample from my 296 rows data set. Now, both data sets are going to have 117 rows and we can compare means.  
+So, if we only focus on means values, we are going to face an issue (bias), cause is not going to be the same for both data sets. We need to be partial. In this case, I am going to pick a 117 random sample from my 296 rows data set. Now, both data sets are going to have 117 rows and we can compare means.  
 
 
 ```{r echo=FALSE}
-      ##fl8 = filter_less8hours
-      select_fl8 <- filter_less8hourse %>%
-        select(total_steps,
-               total_distance,
-               very_active_distance,
-               moderately_active_distance,
-               light_active_distance,
-               very_active_minutes,
-               fairly_active_minutes,
-               lightly_active_minutes,
-               total_activity_minutes,
-               sedentary_minutes, 
-               calories,
-               total_minutes_asleep,
-               total_time_in_bed)
+##fl8 = filter_less8hours
+select_fl8 <- filter_less8hourse %>%
+  select(total_steps,
+    total_distance,
+    very_active_distance,
+    moderately_active_distance,
+    light_active_distance,
+    very_active_minutes,
+    fairly_active_minutes,
+    lightly_active_minutes,
+    total_activity_minutes,
+    sedentary_minutes, 
+    calories,
+    total_minutes_asleep,
+    total_time_in_bed)
       
-      ##8h = 8hours
-      select_8h <- filter_8hours %>%
-        select(
-          total_steps,
-          total_distance,
-          very_active_distance,
-          moderately_active_distance,
-          light_active_distance,
-          very_active_minutes,
-          fairly_active_minutes,
-          lightly_active_minutes,
-          total_activity_minutes,
-          sedentary_minutes, 
-          calories,
-          total_minutes_asleep,
-          total_time_in_bed)
-      
-     
+##8h = 8hours
+  select_8h <- filter_8hours %>%
+    select(
+    total_steps,
+    total_distance,
+    very_active_distance,
+    moderately_active_distance,
+    light_active_distance,
+    very_active_minutes,
+    fairly_active_minutes,
+    lightly_active_minutes,
+    total_activity_minutes,
+    sedentary_minutes, 
+    calories,
+    total_minutes_asleep,
+    total_time_in_bed)
 ```
 
 
@@ -228,7 +247,7 @@ So, if we only focus on means values, we are going to face an issue, cause is no
 ```{r}
 ##I already created both data sets, this is only the random formula
 random_selectfl8 <- select_fl8 %>%
-        sample_n(117, replace = FALSE)
+  sample_n(117, replace = FALSE)
 ```
 
 ### Less than 8 hours
@@ -243,15 +262,15 @@ summary(random_selectfl8)
 summary(select_8h)
 ```
 
-### Conclusion 
+### First conclusion 
 
-We can see a trend that people who sleep -8 hours use to do more active, lightly and moderately exercise and also used to spend more time doing this. 
+We can see a trend that people who sleep -8 hours use to do more active, lightly and moderately exercise and also used to spend more time doing this. Be careful with this information, cause it is not the final result. 
 
-## To complete...
+## Trends
 
 Finally, after analyze data with numbers, it is time to see visual trends. We are going to merge the two 117 rows data sets, the people who sleep equal or more than 8 hours and less than 8 hours, so we have a new data set with 234 rows and with the information combine.  
 
-In this case, we are going to merge with outter join, cause we need both data and not only the ones who are the same. 
+In this case, we are going to merge with outer join, cause we need both data and not only the ones who are the same. 
 
 ```{r}
 merge_8h_fl8 <- merge(select_8h, random_selectfl8, all = TRUE)
@@ -265,18 +284,17 @@ glimpse(eight_hours)
 
 ### Sedentary Minutes vs Tota Activity Minutes
 
-We can find some imbalance in sedentary minutes comparing to activity minutes in people who sleep less than 8 hours. On people who sleep 8 hours or more we find a balance and the sedentary minutes are not so high, they trend to be balance and center.  
-
+We can find imbalance in sedentary minutes comparing to activity minutes in people who sleep less than 8 hours. In people who sleep 8 hours or more we find a balance and the sedentary minutes are not so high, they trend to be more balance and center.  
 
 ```{r echo=FALSE}
- label_filter_change = as_labeller(c(`FALSE` = "Less than 8 hours", `TRUE` = "8 hours or more"))
+label_filter_change = as_labeller(c(`FALSE` = "Less than 8 hours", `TRUE` = "8 hours or more"))
   ggplot(data = eight_hours) +
-    geom_point(mapping = aes(x = total_activity_minutes, y = sedentary_minutes, color = calories)) +
-    facet_wrap(~eight_hours_or_not, labeller = label_filter_change) +
-    labs(x = "Total Activity Minutes", y = "Sedentary Minutes")
+  geom_point(mapping = aes(x = total_activity_minutes, y = sedentary_minutes, color = calories)) +
+  facet_wrap(~eight_hours_or_not, labeller = label_filter_change) +
+  labs(x = "Total Activity Minutes", y = "Sedentary Minutes")
 ```
 
-### Balance between the tota distance and the calories. 
+### Balance between the total distance and the calories. 
 
 We can see a balance also in people who sleep 8 hours or more according to the different type of activities. 
 
@@ -285,23 +303,23 @@ We can see a balance also in people who sleep 8 hours or more according to the d
 ***Red*** = Light Activity
 
 ```{r echo=FALSE, message=FALSE}
-    ggplot(data = eight_hours, aes(x = total_distance, y = calories)) +
-      geom_smooth(mapping = aes(x = very_active_distance, y = calories), se = FALSE) +
-      geom_smooth(mapping = aes(x = light_active_distance, y = calories), color = "red", se = FALSE) +
-      geom_smooth(mapping = aes(x = moderately_active_distance, y = calories), color = "green", se = FALSE) +
-      facet_wrap(~eight_hours_or_not, labeller = label_filter_change) +
-      labs(x ="Total Distance", y = "Calories") 
+ggplot(data = eight_hours, aes(x = total_distance, y = calories)) +
+  geom_smooth(mapping = aes(x = very_active_distance, y = calories), se = FALSE) +
+  geom_smooth(mapping = aes(x = light_active_distance, y = calories), color = "red", se = FALSE) +
+  geom_smooth(mapping = aes(x = moderately_active_distance, y = calories), color = "green", se = FALSE) +
+  facet_wrap(~eight_hours_or_not, labeller = label_filter_change) +
+  labs(x ="Total Distance", y = "Calories") 
 ```
 
 ## Conclusion
 
-We can see in the summaries that people who sleep less has higher mean values, almost in all columns, but according to the graphs, we can see that the people who sleep 8 or more hours are more balance than the people who sleep less. This means, we can find a breakeven in +8 hours, and in - 8 hours we find lot of peaks values.  
+We can see in the summaries that people who sleep less has higher mean values, almost in all the columns, but according to the graphs, we can see that the people who sleep 8 or more hours are more balance than the people who sleep less. This means, we can find a breakeven in +8 hours, and in - 8 hours we find lot of peaks values.  
 
 ## Importing more data 
 
 We are going to import the weight (kg) values, including bmi also (body mass index).   
 
-```{r}
+```{r message=FALSE}
 weight_Log_Info <- read_excel("weight_Log_Info.xlsx")
 ```
 
@@ -309,32 +327,30 @@ weight_Log_Info <- read_excel("weight_Log_Info.xlsx")
 
 ```{r}
 head(weight_Log_Info)
-
 weightt <- weight_Log_Info %>%
-      clean_names() %>%
-      rename(activity_date = x3) 
-
+  clean_names() %>%
+  rename(activity_date = x3) 
 weight <- weightt %>%
-      select(id,
-             activity_date,
-             weight_kg,
-             fat,
-             bmi,)
+  select(id,
+    activity_date,
+    weight_kg,
+    fat,
+    bmi,)
 colnames(weight)
 ```
 
 ## Merging da_sl data set with the new weight data
 
-It is going to be merge with inner join, we need only the information that match. 
+The data sets are going to be merge with inner join, we need only the information that match. 
 
 ```{r}
-  da_sl_we <- merge(da_sl, weight, by = c("id", "activity_date"))
+da_sl_we <- merge(da_sl, weight, by = c("id", "activity_date"))
 ```
+## Trend 
 
 We can see a trend when weight increment, the bmi also increment. 
 
 ```{r echo=FALSE}
-
 ggplot(data = da_sl_we) +
   geom_line(mapping = aes(x = weight_kg, y = bmi, ), color = "blue") +
   labs(x = "Weight (kg)", y = "BMI")
@@ -342,19 +358,19 @@ ggplot(data = da_sl_we) +
 
 ## Importing new data sets, cleaning, analyzing and merging
 
-Now, we want to analyze the data sets per hour and merge them for trends findings. We are going to import data sets, clean it, analyze it so we can see visual trends. 
+Now, we want to analyze the data sets per hour and merge them for trends findings. We are going to import data sets, clean it and analyze it so we can see visual trends. 
 
 ```{r}
-    hourly_Intensities <- read_excel("hourly_Intensities.xlsx")
-    hourly_Calories <- read_excel("hourly_Calories.xlsx")
-    hourly_Steps <- read_excel("hourly_Steps.xlsx") 
+hourly_Intensities <- read_excel("hourly_Intensities.xlsx")
+hourly_Calories <- read_excel("hourly_Calories.xlsx")
+hourly_Steps <- read_excel("hourly_Steps.xlsx") 
 ```
 
 **hi =hourly_Itennsities**
 **hc = hourly_Calories**
 **hs = hourly_Steps**
 
-#### Cleaning
+## Cleaning
 
 ```{r}
 hi <- hourly_Intensities %>%
@@ -367,22 +383,22 @@ hs <- hourly_Steps %>%
   clean_names()
 ```
 
-#### Merging
+## Merging
 
 ```{r}
 hi_hc <- merge(hi, hc, by = c("id", "activity_date"))
 ```
 
-### Cleaning and analyzing
+## Cleaning and analyzing
 
-This merge is so extensive, like 254979 observations, so we are going to take a sample, according to the poblation so we can analyze it and do future merges. 
+This merge is so extensive, like 254979 observations, so we are going to take a sample, according to the population so we can analyze it and do future merges. We choose the sample size from a 254979 population, 95% confidence and 3% margin error. 
 
 ```{r}
 random_hi_hc <- hi_hc %>%
-            sample_n(1063, replace = FALSE)
+  sample_n(1063, replace = FALSE)
 ```
 
-### Merging with hours_steps
+## Merging with hours_steps
 
 ```{r}
 hi_hc_hs <- merge(random_hi_hc, hs, by = c("id", "activity_date"))
@@ -391,8 +407,11 @@ hi_hc_hs <- merge(random_hi_hc, hs, by = c("id", "activity_date"))
 This new merge has duplicates on same dates and minutes, so we are going to clean this duplicates. 
 
 ```{r}
-  hi_hc_hs_nodup <- hi_hc_hs %>%
-        distinct(id, activity_date, .keep_all = TRUE)
+hi_hc_hs_nodup <- hi_hc_hs %>%
+  distinct(id, activity_date, .keep_all = TRUE)
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+```{r}
+ggplot(data = hi_hc_hs_nodup) +
+  geom_point(mapping = aes(x= step_total, y = calories))
+```
